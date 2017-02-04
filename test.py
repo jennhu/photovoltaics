@@ -1,33 +1,64 @@
 import pandas as pd
 import numpy as np
 import gzip
-#import matplotlib.pyplot as plt
+import os
 
 from rdkit import Chem
-from rdkit.Chem.Fingerprints import FingerprintMols
 from rdkit.Chem import rdmolops
+from rdkit import DataStructs
+from rdkit.Chem.Fingerprints import FingerprintMols
+from rdkit.Chem import MACCSkeys
+from rdkit.Chem.AtomPairs import Pairs
+from rdkit.Chem import AllChem
+from rdkit.Chem import FragmentCatalog
+from rdkit import RDConfig
 
-"""
-Read in train and test as Pandas DataFrames
-"""
+# Read in train and test as Pandas DataFrames
 df_train = pd.read_csv("train.csv.gz", nrows=1000, compression='gzip')
 
 # Convert SMILES to molecules
 ms = [Chem.MolFromSmiles(s) for s in df_train["smiles"].values]
 
+# Number of bits for vectors
+NBits = 256
+
+def export_fps(fps, outfile):
+	df = pd.DataFrame()
+	for fp in fps:
+		unpacked = pd.DataFrame(data=np.array([fp[i] for i in range(len(fp))]).reshape(1, -1))
+		df = pd.concat((df, unpacked))	
+	df.to_csv(outfile)
+	print df
+
 # Topological fingerprints
-# top_fps = [FingerprintMols.FingerprintMol(m) for m in ms]
-top_fps = [rdmolops.RDKFingerprint(m, fpSize=256) for m in ms]
+def top(outfile):
+	top_fps = [rdmolops.RDKFingerprint(m, fpSize=NBits) for m in ms]
+	export_fps(top_fps, outfile)
 
 # Morgan fingerprints
-morgan_fps = [AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=256) for m in ms]
+def morgan(outfile):
+	morgan_fps = [AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=NBits) for m in ms]
+	export_fps(morgan_fps, outfile)
 
-df = pd.DataFrame()
-for fp in top_fps:
-	unpacked = pd.DataFrame(data=np.array([fp[i] for i in range(len(fp))]).reshape(1, -1))
-	df = pd.concat((df, unpacked))	
-print df
+# MACCS keys
+def maccs(outfile):
+	maccs_fps = [MACCSkeys.GenMACCSKeys(m) for m in ms]
+	export_fps(maccs_fps, outfile)
 
-#df = pd.DataFrame(morgan_fps)
-df.to_csv('morgan.csv')
-df.to_csv('top.csv')
+# Atom pairs and topological torsions
+def pair(outfile):
+	pair_fps = [Pairs.GetAtomPairFingerprintAsBitVect(m) for m in ms]
+	export_fps(pair_fps, outfile) 
+
+top('top.csv')
+morgan('morgan.csv')
+maccs('maccs.csv')
+# THIS IS VERY SPARSE AND HUMUNGOUS
+# pair('pair.csv')
+
+# Molecular fragments
+# fName = os.path.join(RDConfig.RDDataDir,'FunctionalGroups.txt')
+# fparams = FragmentCatalog.FragCatParams(1,6,fName)
+# fcat = FragmentCatalog.FragCatalog(fparams)
+# fpgen = FragmentCatalog.FragFPGenerator()
+# frags = [fpgen.GetFPForMol(fpgen,m,fcat) for m in ms] # BROKEN
