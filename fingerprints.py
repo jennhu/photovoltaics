@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import gzip
-import os
+# this is for the sketchy molecular fragment stuff
+# import os
 
 from rdkit import Chem
 from rdkit.Chem import rdmolops
@@ -12,12 +13,6 @@ from rdkit.Chem.AtomPairs import Pairs
 from rdkit.Chem import AllChem
 from rdkit.Chem import FragmentCatalog
 from rdkit import RDConfig
-
-# Read in train and test as Pandas DataFrames
-df_train = pd.read_csv("train.csv.gz", nrows=1000, compression='gzip')
-
-# Convert SMILES to molecules
-ms = [Chem.MolFromSmiles(s) for s in df_train["smiles"].values]
 
 # Number of bits for vectors
 NBits = 256
@@ -50,9 +45,21 @@ def pair(outfile):
 	pair_fps = [Pairs.GetAtomPairFingerprintAsBitVect(m) for m in ms]
 	export_fps(pair_fps, outfile) 
 
+# Read in train and test as Pandas DataFrames
+df_train = pd.read_csv("train.csv.gz", nrows=10000, compression='gzip')
+
+#print "data done. starting SMILES..."
+
+# Convert SMILES to molecules
+ms = [Chem.MolFromSmiles(s) for s in df_train["smiles"].values]
+
+#print "SMILES done. starting top..."
 top('top.csv')
+#print "top done. starting morgan..."
 morgan('morgan.csv')
+#print "morgan done. starting maccs..."
 maccs('maccs.csv')
+#print "maccs done"
 # THIS IS VERY SPARSE AND HUMUNGOUS
 # pair('pair.csv')
 
