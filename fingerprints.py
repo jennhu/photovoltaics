@@ -18,10 +18,11 @@ from rdkit import RDConfig
 NBits = 256
 
 def export_fps(fps, outfile):
-	df = pd.DataFrame()
+	df_list = []
 	for fp in fps:
 		unpacked = pd.DataFrame(data=np.array([fp[i] for i in range(len(fp))]).reshape(1, -1))
-		df = pd.concat((df, unpacked))	
+		df_list.append(unpacked) 
+	df = pd.concat(df_list)	
 	df.to_csv(outfile)
 	print df
 
@@ -46,7 +47,7 @@ def pair(outfile):
 	export_fps(pair_fps, outfile) 
 
 # Read in train and test as Pandas DataFrames
-df_train = pd.read_csv("train.csv.gz", nrows=10000, compression='gzip')
+df_train = pd.read_csv("train.csv.gz", nrows=100000, compression='gzip')
 
 #print "data done. starting SMILES..."
 
