@@ -27,19 +27,19 @@ def export_fps(fps, outfile):
 	print df
 
 # Topological fingerprints
-def top(ms,outfile):
-	top_fps = [rdmolops.RDKFingerprint(m, fpSize=NBits) for m in ms]
-	export_fps(top_fps, outfile)
+# def top(ms,outfile):
+# 	top_fps = [rdmolops.RDKFingerprint(m, fpSize=NBits) for m in ms]
+# 	export_fps(top_fps, outfile)
 
 # Morgan fingerprints
 def morgan(ms,outfile):
-	morgan_fps = [AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=NBits) for m in ms_test]
+	morgan_fps = [AllChem.GetMorganFingerprintAsBitVect(m,2,nBits=NBits) for m in ms]
 	export_fps(morgan_fps, outfile)
 
 # MACCS keys
-def maccs(ms,outfile):
-	maccs_fps = [MACCSkeys.GenMACCSKeys(m) for m in ms]
-	export_fps(maccs_fps, outfile)
+# def maccs(ms,outfile):
+# 	maccs_fps = [MACCSkeys.GenMACCSKeys(m) for m in ms]
+# 	export_fps(maccs_fps, outfile)
 
 # Atom pairs and topological torsions
 #def pair(ms,outfile):
@@ -48,16 +48,19 @@ def maccs(ms,outfile):
 
 # FOR TRAINING
 # Read in train as Pandas DataFrame and convert SMILES to molecules
-df_train = pd.read_csv("train.csv.gz", nrows=100000, compression='gzip')
+df_train = pd.read_csv("train.csv.gz", compression='gzip')
+print "done reading in"
 ms_train = [Chem.MolFromSmiles(s) for s in df_train["smiles"].values]
+print "done molecule conversion"
 
 # FOR TESTING
 # Read in test as Pandas DataFrame and convert SMILES to molecules
-df_test = pd.read_csv("test.csv.gz", compression='gzip')
-ms_test = [Chem.MolFromSmiles(s) for s in df_test["smiles"].values]
+# df_test = pd.read_csv("test.csv.gz", compression='gzip')
+# ms_test = [Chem.MolFromSmiles(s) for s in df_test["smiles"].values]
 
 #top(ms,'top.csv')
-morgan(ms_test,'morgan_test.csv')
+# morgan(ms_test,'morgan_test.csv')
+morgan(ms_train,'morgan_train.csv')
 #maccs(ms,'maccs.csv')
 # THIS IS VERY SPARSE AND HUMUNGOUS
 # pair(ms,'pair.csv')
